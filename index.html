@@ -403,6 +403,11 @@ h1,h2,h3,h4,h5{font-family:'Outfit',sans-serif}
 .pna-table tr:last-child td{border-bottom:none}
 .pna-table tr:hover td{background:var(--sky)}
 .pna-table tr.total-row td{font-weight:700;background:var(--red-lt);color:var(--red)}
+.pna-table th, .pna-table td, .avi-table th, .avi-table td { white-space: nowrap; }
+.pna-table td:nth-child(2),
+.pna-table td:nth-child(6),
+.pna-table td:nth-child(7),
+.pna-table td:nth-child(8) { white-space: normal; overflow-wrap: break-word; word-break: break-word; }
 .tbl-title{font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;color:var(--blue);text-align:center;background:var(--sky);padding:8px;letter-spacing:.5px;text-transform:uppercase}
 
 /* ── DASHBOARD ────────────────────────────────────────────────── */
@@ -1846,7 +1851,7 @@ h1,h2,h3,h4,h5{font-family:'Outfit',sans-serif}
 /* ================================================================
    CONFIGURACIÓN
 ================================================================ */
-const API_URL = "https://script.google.com/macros/s/AKfycbzhaXdJvhCn9ZkS-09IDQYPeZ15sFDRFh6bjZfJn0eQk2vOwajXMwz_-7DRU6T_mqZ2iw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycby0yoO4CBcYk3YeZ39QPavShlG-sAE3ZAo8vRRw7HYdyjAyDPiuf4F50C0GULVhwKcwRQ/exec";
 const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbxjzu92aPsuVqdsALPCrrz6kG1ARLPidZmk-HkKoTgWNp6spgsCwc1K4GCUK9UALdaatw/exec";
 
 /* ================================================================
@@ -3239,7 +3244,7 @@ function mostrarSeccion(id) {
     }, 100);
   }
   if (id === "MDA_SIBI") {
-    setTimeout(() => { if (_sibiMap) _sibiMap.invalidateSize(); }, 200);
+    setTimeout(function() { window._sibiEstadoFiltro = "activos"; window._sibiAnioFiltro = ""; sibiAplicarFiltros(); }, 50);
   }
 
   // AIS Map for SAR/MAS
@@ -5095,86 +5100,87 @@ if (sec.tipo === "tipo_puertos" || sec.id === "PUERTOS") {
         <div style="font-size:28px;font-family:'Outfit',sans-serif;font-weight:800;color:#22c55e;line-height:1;">${activeN}</div>
         <div style="font-size:11px;font-weight:700;color:var(--text-lt);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;">ACTIVOS</div>
       </div>
-      <div style="flex:1;min-width:120px;background:#fff;border-radius:var(--radius-lg);padding:12px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:1px solid var(--gray-200);text-align:center;border-top:3px solid #94a3b8;">
-        <div style="font-size:28px;font-family:'Outfit',sans-serif;font-weight:800;color:#64748b;line-height:1;">${finalN}</div>
+      <div style="flex:1;min-width:120px;background:#fff;border-radius:var(--radius-lg);padding:12px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:1px solid var(--gray-200);text-align:center;border-top:3px solid #ef4444;">
+        <div style="font-size:28px;font-family:'Outfit',sans-serif;font-weight:800;color:#ef4444;line-height:1;">${finalN}</div>
         <div style="font-size:11px;font-weight:700;color:var(--text-lt);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;">FINALIZADOS</div>
       </div>
     </div>`;
 
     // ── Filter Buttons ──
-    h += `<div style="display:flex;gap:6px;margin-bottom:12px;">
+    const _allBanderas = [...new Set(allItems.map(f => (f.datos[2] || "").toString().trim()).filter(Boolean))].sort();
+    const _allAnios = [...new Set(allItems.map(f => {
+      const fecha = (f.datos[4]||"").toString().trim();
+      const p = fecha.split("/");
+      if (p.length === 3 && p[2].length === 4) return p[2];
+      const m = fecha.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+      return m ? m[3] : "";
+    }).filter(Boolean))].sort().reverse();
+    h += `<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:center;">
       <button id="sibi-btn-todos" onclick="sibiFiltrar('todos')" style="padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid #1d6fa4;background:#1d6fa4;color:#fff;font-family:'Outfit',sans-serif;">Todos (${totalN})</button>
       <button id="sibi-btn-activos" onclick="sibiFiltrar('activos')" style="padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid #22c55e;background:#fff;color:#22c55e;font-family:'Outfit',sans-serif;">✅ Activos (${activeN})</button>
-      <button id="sibi-btn-finalizados" onclick="sibiFiltrar('finalizados')" style="padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid #94a3b8;background:#fff;color:#64748b;font-family:'Outfit',sans-serif;">⏹ Finalizados (${finalN})</button>
+      <button id="sibi-btn-finalizados" onclick="sibiFiltrar('finalizados')" style="padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid #ef4444;background:#fff;color:#ef4444;font-family:'Outfit',sans-serif;">⏹ Finalizados (${finalN})</button>
+      <a href="https://www.seasearcher.com/user/list-configuration/23265" target="_blank" rel="noopener noreferrer" style="padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid #7c3aed;background:#7c3aed;color:#fff;font-family:'Outfit',sans-serif;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">🔗 PSN actual</a>
+      <button onclick="sibiAbrirDashboard()" style="padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid #f59e0b;background:#fff;color:#f59e0b;font-family:'Outfit',sans-serif;display:inline-flex;align-items:center;gap:4px;">📊 Dashboard</button>
+    </div>`;
+    h += `<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
+      <span style="font-size:11px;font-weight:700;color:var(--text-lt);">Bandera:</span>
+      <select id="sibi-filter-bandera" onchange="sibiAplicarFiltros()" style="padding:5px 8px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid #d8e2ef;font-family:'Outfit',sans-serif;cursor:pointer;background:#fff;color:var(--text);">
+        <option value="">Todas</option>
+        ${_allBanderas.map(b => `<option value="${esc(b)}">${esc(b)}</option>`).join("")}
+      </select>
+      <span style="margin-left:8px;font-size:11px;font-weight:700;color:var(--text-lt);">Tipo:</span>
+      <select id="sibi-filter-tipo" onchange="sibiAplicarFiltros()" style="padding:5px 8px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid #d8e2ef;font-family:'Outfit',sans-serif;cursor:pointer;background:#fff;color:var(--text);">
+        <option value="">Todos</option>
+        ${[...new Set(allItems.map(f => (f.datos[3] || "").toString().trim()).filter(Boolean))].sort().map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join("")}
+      </select>
+      <span style="margin-left:8px;font-size:11px;font-weight:700;color:var(--text-lt);">Año:</span>
+      <div id="sibi-btns-anio" style="display:flex;gap:4px;flex-wrap:wrap;">
+        <button onclick="sibiFiltrarAnio('')" class="sibi-anio-btn active" style="padding:4px 10px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid #1d6fa4;background:#1d6fa4;color:#fff;font-family:'Outfit',sans-serif;">Todos</button>
+        ${_allAnios.map(a => `<button onclick="sibiFiltrarAnio('${a}')" class="sibi-anio-btn" data-anio="${a}" style="padding:4px 10px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid #d8e2ef;background:#fff;color:var(--text);font-family:'Outfit',sans-serif;">${a}</button>`).join("")}
+      </div>
     </div>`;
 
-    // ── Layout: Table Left 50% + Map Right 50% ──
-    h += `<div style="display:flex;gap:14px;">
-      <div style="width:50%;min-width:0;box-sizing:border-box;" id="sibi-table-wrap">`;
+    // ── Layout: Tabla completa ──
+    h += `<div id="sibi-table-wrap">`;
 
     // Table — force fixed layout with cell text wrapping
     h += `<div class="tbl-wrap" style="overflow:hidden;max-height:none;">
   <table class="pna-table" style="width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;">
     <colgroup>
-      <col style="width:9%">
-      <col style="width:16%">
-      <col style="width:10%">
       <col style="width:14%">
-      <col style="width:11%">
-      <col style="width:18%">
-      <col style="width:22%">
+      <col style="width:8%">
+      <col style="width:6%">
+      <col style="width:8%">
+      <col style="width:7%">
+      <col style="width:14%">
+      <col style="width:14%">
+      <col style="width:auto">
     </colgroup>
-    <tr><th>IMO</th><th>Nombre</th><th>Bandera</th><th>Tipo Buque</th><th>Fecha ID</th><th>Procedencia</th><th>Destino</th></tr>`;
+    <tr><th>Nombre</th><th>IMO</th><th>Bandera</th><th>Tipo Buque</th><th>Fecha ID</th><th>Procedencia</th><th>Destino</th><th>Observaciones</th></tr>`;
 
 allItems.forEach((f, _sibiIdx) => {
   const d = f.datos || [];
   const esActivo = (f.estado || "").toUpperCase() === "ACTIVO";
   const rowBg = esActivo ? "background:#f0fdf4;" : "background:#f8fafc;opacity:0.7;";
-  const nombreClick = esActivo ? `onclick="sibiVolarABuque('${esc((d[1]||"").replace(/'/g,"\\'"))}')"` : "";
-  const nombreStyle = esActivo ? "cursor:pointer;color:#1d6fa4;text-decoration:underline;" : "";
-  h += `<tr class="sibi-row" data-estado="${esc(f.estado || "")}" style="${rowBg}">
+  const _fechaStr = (d[4]||"").toString().trim();
+  const _fechaParts = _fechaStr.split("/");
+  const _anioVal = _fechaParts.length === 3 && _fechaParts[2].length === 4 ? _fechaParts[2] : ((_fechaStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/)||[])[3] || "");
+  h += `<tr class="sibi-row" data-estado="${esc(f.estado || "")}" data-tipo="${esc((d[3]||"").toString().trim())}" data-bandera="${esc((d[2]||"").toString().trim())}" data-anio="${esc(_anioVal)}" style="${rowBg}">
+    <td style="text-align:center;font-weight:700;overflow-wrap:anywhere;word-break:break-word">${esc(d[1]||"")}</td>
     <td style="text-align:center;font-weight:600;overflow-wrap:anywhere;word-break:break-word">${esc(d[0]||"")}</td>
-    <td style="text-align:left;font-weight:700;${nombreStyle}overflow-wrap:anywhere;word-break:break-word" ${nombreClick}>${esc(d[1]||"")}</td>
     <td style="text-align:center;overflow-wrap:anywhere;word-break:break-word">${esc(d[2]||"")}</td>
     <td style="text-align:center;overflow-wrap:anywhere;word-break:break-word">${esc(d[3]||"")}</td>
     <td style="text-align:center;overflow-wrap:anywhere;word-break:break-word">${esc(d[4]||"")}</td>
-    <td style="text-align:left;overflow-wrap:anywhere;word-break:break-word">${esc(d[5]||"")}</td>
-    <td style="text-align:left;overflow-wrap:anywhere;word-break:break-word">${esc(d[6]||"")}</td>
+    <td style="text-align:center;overflow-wrap:anywhere;word-break:break-word">${esc(d[5]||"")}</td>
+    <td style="text-align:center;overflow-wrap:anywhere;word-break:break-word">${esc(d[6]||"")}</td>
+    <td style="text-align:left;overflow-wrap:anywhere;word-break:break-word;font-size:12px">${esc(d[7]||"")}</td>
   </tr>`;
 });
 
-h += `</table></div>`;
-
-    h += `</div>
-      <div style="width:50%;min-width:0;box-sizing:border-box;">
-        <div id="sibi-map-wrap" style="display:block">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:linear-gradient(135deg,#0f2744 0%,#1a4a7a 100%);color:#fff;">
-            <h3 style="margin:0;font-size:13px;">📍 Posiciones MDA - SIBI</h3>
-            <div style="display:flex;gap:4px;">
-              <button onclick="if(_sibiMap)_sibiMap.fitBounds([[-55,-73],[-22,-54]])" title="Ver Argentina completa" style="background:#64748b;color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;">🗺️ ARG</button>
-              <button onclick="sibiLimpiarPines()" title="Limpiar todos" style="background:#ef4444;color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;">✕</button>
-            </div>
-          </div>
-          <div style="display:flex;gap:4px;padding:4px 8px;background:#f0f4ff;border-bottom:1px solid var(--gray-200);align-items:center;flex-wrap:wrap;font-size:11px">
-            <span style="font-weight:700;color:#8b5cf6">📍</span>
-            <input type="text" id="sibi-pin-name" placeholder="Nombre" style="width:90px;padding:3px 6px;border:1px solid var(--gray-200);border-radius:4px;font-size:11px">
-            <input type="text" id="sibi-pin-lat" placeholder="Lat (ej: 26° 56' S)" style="width:110px;padding:3px 6px;border:1px solid var(--gray-200);border-radius:4px;font-size:11px">
-            <input type="text" id="sibi-pin-lon" placeholder="Lon (ej: 58° 29' W)" style="width:110px;padding:3px 6px;border:1px solid var(--gray-200);border-radius:4px;font-size:11px">
-            <button id="sibi-pin-btn" onclick="sibiPinManual()" style="padding:3px 8px;background:#8b5cf6;color:#fff;border:none;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer">+ Pin</button>
-          </div>
-          <div id="sibi-map" style="height:500px;width:100%"></div>
-          <div id="sibi-map-msg" style="padding:4px 12px;font-size:11px;color:var(--text-lt);background:#f8fafc;border-top:1px solid var(--gray-200);text-align:center;">Inicializando mapa...</div>
-          <div id="sibi-pin-list" style="padding:4px 12px 6px;font-size:10px;background:#f8fafc;border-top:1px solid var(--gray-200);max-height:80px;overflow-y:auto;display:flex;flex-wrap:wrap;gap:3px 8px;"></div>
-        </div>
-      </div>
-    </div>`;
+h += `</table></div></div>`;
 
     // Store data for JS filtering
     window._sibiData = allItems.map(f => ({datos: f.datos || [], estado: f.estado || ""}));
-
-    // Init map after render
-    setTimeout(() => sibiInitMap(), 200);
-
     return h;
   }
 
@@ -5221,21 +5227,222 @@ function _sibiIcon(name, id) {
 }
 
 function sibiFiltrar(tipo) {
-  const rows = document.querySelectorAll(".sibi-row");
-  rows.forEach(r => {
-    const est = (r.getAttribute("data-estado") || "").toUpperCase();
-    if (tipo === "todos") r.style.display = "";
-    else if (tipo === "activos") r.style.display = est === "ACTIVO" ? "" : "none";
-    else if (tipo === "finalizados") r.style.display = est === "FINALIZADO" ? "" : "none";
-  });
+  window._sibiEstadoFiltro = tipo;
+  sibiAplicarFiltros();
   ["todos","activos","finalizados"].forEach(k => {
     const btn = document.getElementById("sibi-btn-" + k);
     if (!btn) return;
     const isActive = k === tipo;
     if (k === "todos") { btn.style.background = isActive ? "#1d6fa4" : "#fff"; btn.style.color = isActive ? "#fff" : "#1d6fa4"; }
     else if (k === "activos") { btn.style.background = isActive ? "#22c55e" : "#fff"; btn.style.color = isActive ? "#fff" : "#22c55e"; }
-    else { btn.style.background = isActive ? "#64748b" : "#fff"; btn.style.color = isActive ? "#fff" : "#64748b"; }
+    else { btn.style.background = isActive ? "#ef4444" : "#fff"; btn.style.color = isActive ? "#fff" : "#ef4444"; }
   });
+}
+function sibiFiltrarAnio(anio) {
+  window._sibiAnioFiltro = anio;
+  sibiAplicarFiltros();
+  document.querySelectorAll(".sibi-anio-btn").forEach(b => {
+    const bAnio = b.getAttribute("data-anio") || "";
+    const isActive = bAnio === anio;
+    b.style.background = isActive ? "#1d6fa4" : "#fff";
+    b.style.color = isActive ? "#fff" : "var(--text)";
+    b.style.borderColor = isActive ? "#1d6fa4" : "#d8e2ef";
+  });
+}
+function sibiAplicarFiltros() {
+  var estado = window._sibiEstadoFiltro || "activos";
+  var tipoEl = document.getElementById("sibi-filter-tipo");
+  var banderaEl = document.getElementById("sibi-filter-bandera");
+  var tipo = tipoEl ? tipoEl.value : "";
+  var bandera = banderaEl ? banderaEl.value : "";
+  var anio = window._sibiAnioFiltro || "";
+  var rows = document.querySelectorAll(".sibi-row");
+  rows.forEach(r => {
+    var est = (r.getAttribute("data-estado") || "").toUpperCase();
+    var tip = (r.getAttribute("data-tipo") || "").toUpperCase();
+    var ban = (r.getAttribute("data-bandera") || "").toUpperCase();
+    var ani = r.getAttribute("data-anio") || "";
+    var showEstado = estado === "todos" || (estado === "activos" && est === "ACTIVO") || (estado === "finalizados" && est === "FINALIZADO");
+    var showTipo = !tipo || tip === tipo.toUpperCase();
+    var showBandera = !bandera || ban === bandera.toUpperCase();
+    var showAnio = !anio || ani === anio;
+    r.style.display = (showEstado && showTipo && showBandera && showAnio) ? "" : "none";
+  });
+}
+
+function sibiAbrirDashboard() {
+  var data = window._sibiData || [];
+  if (!data.length) return;
+
+  function _parseFecha(fecha) {
+    if (!fecha) return null;
+    var p = fecha.split("/");
+    if (p.length === 3) return { mes: parseInt(p[1], 10), anio: parseInt(p[2], 10) };
+    var m = fecha.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (m) return { mes: parseInt(m[2], 10), anio: parseInt(m[3], 10) };
+    return null;
+  }
+  var MESES = ["","Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+
+  var _allAnios = [...new Set(data.map(function(f) { var fec = _parseFecha((f.datos||[])[4]); return fec ? fec.anio : ""; }).filter(Boolean))].sort().reverse();
+  window._sibiDashAnio = "";
+  window._sibiDashData = data;
+  window._sibiDashCharts = {};
+
+  var modal = document.createElement("div");
+  modal.id = "sibi-dashboard-modal";
+  modal.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);";
+  modal.innerHTML = `<div style="background:#fff;border-radius:var(--radius-lg);width:92%;max-width:900px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,0.3);overflow:hidden;">
+    <div style="padding:14px 20px;background:var(--navy);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+      <span style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:#fff;">📊 Dashboard MDA-SIBI</span>
+      <button onclick="sibiCerrarDashboard()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;">✕ Cerrar</button>
+    </div>
+    <div style="padding:12px 20px;border-bottom:1px solid var(--gray-200);display:flex;gap:6px;flex-wrap:wrap;align-items:center;flex-shrink:0;background:var(--gray-100);">
+      <span style="font-size:11px;font-weight:700;color:var(--text-lt);">Año:</span>
+      <button onclick="sibiDashFiltroAnio('')" class="sibi-dash-anio active" style="padding:4px 12px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid #1d6fa4;background:#1d6fa4;color:#fff;font-family:'Outfit',sans-serif;">Todos</button>
+      ${_allAnios.map(a => `<button onclick="sibiDashFiltroAnio('${a}')" class="sibi-dash-anio" data-anio="${a}" style="padding:4px 12px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid #d8e2ef;background:#fff;color:var(--text);font-family:'Outfit',sans-serif;">${a}</button>`).join("")}
+    </div>
+    <div style="padding:20px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:24px;">
+      <div>
+        <div style="font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Tendencia por Mes</div>
+        <canvas id="sibi-chart-mes" style="max-height:260px;width:100%;"></canvas>
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:280px;">
+          <div style="font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Por Bandera</div>
+          <canvas id="sibi-chart-bandera" style="max-height:260px;width:100%;"></canvas>
+        </div>
+        <div style="flex:1;min-width:280px;">
+          <div style="font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Por Tipo de Buque</div>
+          <canvas id="sibi-chart-tipo" style="max-height:260px;width:100%;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener("click", function(e) { if (e.target === modal) sibiCerrarDashboard(); });
+
+  setTimeout(function() { sibiDashRenderCharts(); }, 150);
+}
+
+function sibiDashFiltroAnio(anio) {
+  window._sibiDashAnio = anio;
+  document.querySelectorAll(".sibi-dash-anio").forEach(function(b) {
+    var bA = b.getAttribute("data-anio") || "";
+    var isActive = bA === anio;
+    b.style.background = isActive ? "#1d6fa4" : "#fff";
+    b.style.color = isActive ? "#fff" : "var(--text)";
+    b.style.borderColor = isActive ? "#1d6fa4" : "#d8e2ef";
+  });
+  sibiDashRenderCharts();
+}
+
+function sibiDashRenderCharts() {
+  var data = window._sibiDashData || [];
+  var anio = window._sibiDashAnio || "";
+
+  function _parseFecha(fecha) {
+    if (!fecha) return null;
+    var p = fecha.split("/");
+    if (p.length === 3) return { mes: parseInt(p[1], 10), anio: parseInt(p[2], 10) };
+    var m = fecha.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (m) return { mes: parseInt(m[2], 10), anio: parseInt(m[3], 10) };
+    return null;
+  }
+  var MESES = ["","Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+
+  var filtered = data.filter(function(f) {
+    if (!anio) return true;
+    var fec = _parseFecha((f.datos||[])[4]);
+    return fec && String(fec.anio) === anio;
+  });
+
+  // Destroy old charts
+  Object.keys(window._sibiDashCharts).forEach(function(k) {
+    if (window._sibiDashCharts[k]) { window._sibiDashCharts[k].destroy(); window._sibiDashCharts[k] = null; }
+  });
+
+  // ── Chart: Por Mes ──
+  var ctxMes = document.getElementById("sibi-chart-mes");
+  if (ctxMes) {
+    var counts = {};
+    filtered.forEach(function(f) {
+      var d = f.datos || [];
+      var fecha = _parseFecha(d[4]);
+      if (!fecha) return;
+      var key = fecha.anio + "-" + String(fecha.mes).padStart(2, "0");
+      var label = MESES[fecha.mes] + " " + fecha.anio;
+      if (!counts[key]) counts[key] = { label: label, total: 0, activos: 0, fin: 0 };
+      counts[key].total++;
+      if ((f.estado || "").toUpperCase() === "ACTIVO") counts[key].activos++;
+      else if ((f.estado || "").toUpperCase() === "FINALIZADO") counts[key].fin++;
+    });
+    var keys = Object.keys(counts).sort();
+    window._sibiDashCharts.mes = new Chart(ctxMes, {
+      type: "bar",
+      data: {
+        labels: keys.map(function(k) { return counts[k].label; }),
+        datasets: [
+          { label: "Total", data: keys.map(function(k) { return counts[k].total; }), backgroundColor: "#1d6fa4", borderRadius: 4 },
+          { label: "Activos", data: keys.map(function(k) { return counts[k].activos; }), backgroundColor: "#22c55e", borderRadius: 4 },
+          { label: "Finalizados", data: keys.map(function(k) { return counts[k].fin; }), backgroundColor: "#ef4444", borderRadius: 4 }
+        ]
+      },
+      options: { responsive: true, plugins: { legend: { position: "top" } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { ticks: { maxRotation: 45 } } } }
+    });
+  }
+
+  // ── Chart: Por Bandera ──
+  var ctxBan = document.getElementById("sibi-chart-bandera");
+  if (ctxBan) {
+    var counts = {};
+    filtered.forEach(function(f) {
+      var d = f.datos || [];
+      var b = (d[2] || "Sin bandera").toString().trim() || "Sin bandera";
+      if (!counts[b]) counts[b] = 0;
+      counts[b]++;
+    });
+    var keys = Object.keys(counts).sort(function(a, b) { return counts[b] - counts[a]; });
+    var colors = ["#1d6fa4","#22c55e","#f59e0b","#ef4444","#8b5cf6","#ec4899","#06b6d4","#f97316","#14b8a6","#6366f1","#e11d48","#84cc16"];
+    window._sibiDashCharts.bandera = new Chart(ctxBan, {
+      type: "bar",
+      data: {
+        labels: keys,
+        datasets: [{ label: "Buques", data: keys.map(function(k) { return counts[k]; }), backgroundColor: keys.map(function(_, i) { return colors[i % colors.length]; }), borderRadius: 4 }]
+      },
+      options: { indexAxis: "y", responsive: true, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+    });
+  }
+
+  // ── Chart: Por Tipo ──
+  var ctxTipo = document.getElementById("sibi-chart-tipo");
+  if (ctxTipo) {
+    var counts = {};
+    filtered.forEach(function(f) {
+      var d = f.datos || [];
+      var t = (d[3] || "Sin tipo").toString().trim() || "Sin tipo";
+      if (!counts[t]) counts[t] = 0;
+      counts[t]++;
+    });
+    var keys = Object.keys(counts).sort(function(a, b) { return counts[b] - counts[a]; });
+    var colors = ["#8b5cf6","#1d6fa4","#22c55e","#f59e0b","#ef4444","#ec4899","#06b6d4","#f97316","#14b8a6","#6366f1","#e11d48","#84cc16"];
+    window._sibiDashCharts.tipo = new Chart(ctxTipo, {
+      type: "doughnut",
+      data: {
+        labels: keys,
+        datasets: [{ data: keys.map(function(k) { return counts[k]; }), backgroundColor: colors.slice(0, keys.length) }]
+      },
+      options: { responsive: true, plugins: { legend: { position: "right" } } }
+    });
+  }
+}
+
+function sibiCerrarDashboard() {
+  Object.keys(window._sibiDashCharts || {}).forEach(function(k) {
+    if (window._sibiDashCharts[k]) { window._sibiDashCharts[k].destroy(); window._sibiDashCharts[k] = null; }
+  });
+  var m = document.getElementById("sibi-dashboard-modal");
+  if (m) m.remove();
 }
 
 function sibiVolarABuque(nombre) {
